@@ -1,79 +1,194 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#0a0a0d">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#09090b" />
   <title>Geode iOS Installer</title>
-  <link rel="stylesheet" href="/styles.css">
+
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <main class="wrap">
-    <section class="hero">
-      <div class="badge">iPhone installer</div>
-      <h1>Geode<br><span>Installer</span></h1>
-      <p class="lead">Get the latest official Geode iOS launcher and install a signed build directly from Safari.</p>
-    </section>
+  <div class="background-glow glow-one"></div>
+  <div class="background-glow glow-two"></div>
 
-    <section class="card">
-      <div class="row between">
+  <main class="page">
+    <nav class="nav">
+      <div class="brand">
+        <div class="logo">G</div>
         <div>
-          <div class="label">LATEST RELEASE</div>
-          <div id="version" class="version">Checking…</div>
+          <div class="brand-name">Geode Installer</div>
+          <div class="brand-sub">iOS</div>
         </div>
-        <div id="dot" class="dot"></div>
       </div>
-      <p id="releaseInfo" class="muted">Contacting the official Geode GitHub release feed.</p>
-      <div class="stack">
-        <a id="downloadBtn" class="btn secondary disabled" href="#" target="_blank" rel="noopener">
-          Download official IPA
-        </a>
-        <button id="cacheBtn" class="btn ghost">Mirror IPA on this server</button>
+
+      <a
+        class="nav-link"
+        href="https://github.com/geode-sdk/ios-launcher"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Official GitHub
+      </a>
+    </nav>
+
+    <section class="hero">
+      <div class="eyebrow">IPHONE • SAFARI • SELF-HOSTED</div>
+
+      <h1>
+        Install Geode<br />
+        <span>from your iPhone.</span>
+      </h1>
+
+      <p class="hero-text">
+        Grab the latest official Geode iOS build, upload a version signed for
+        your device, and generate a one-tap iPhone install link.
+      </p>
+
+      <div class="hero-actions">
+        <a href="#latest" class="button primary">Get Geode</a>
+        <a href="#install" class="button secondary">Install Signed IPA</a>
       </div>
-      <div id="cacheResult" class="result hidden"></div>
     </section>
 
-    <section class="card">
-      <div class="label">ONE-TAP INSTALL</div>
-      <h2>Install a signed IPA</h2>
-      <p class="muted">Upload a Geode IPA that has already been signed for your iPhone. The site creates the iOS install manifest automatically.</p>
+    <section id="latest" class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="small-label">LATEST OFFICIAL RELEASE</div>
+          <h2 id="releaseVersion">Checking...</h2>
+        </div>
+
+        <div id="releaseStatus" class="status-dot"></div>
+      </div>
+
+      <p id="releaseDescription" class="muted">
+        Checking the official Geode iOS GitHub release feed.
+      </p>
+
+      <div class="button-stack">
+        <a
+          id="officialDownload"
+          class="button light disabled"
+          href="#"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Download Official IPA
+        </a>
+
+        <button id="mirrorButton" class="button dark" type="button">
+          Save IPA to This Server
+        </button>
+      </div>
+
+      <div id="mirrorResult" class="message success hidden"></div>
+    </section>
+
+    <section id="install" class="panel">
+      <div class="small-label">ONE-TAP INSTALL</div>
+      <h2>Upload your signed Geode IPA</h2>
+
+      <p class="muted">
+        iOS only installs apps that are signed with a valid Apple certificate
+        and provisioning profile. Upload the signed IPA here and this site will
+        build the install manifest for you.
+      </p>
 
       <form id="uploadForm">
-        <label class="file">
-          <input id="ipa" name="ipa" type="file" accept=".ipa" required>
-          <span id="fileText">Choose signed .ipa</span>
+        <label class="file-picker">
+          <input
+            id="ipaFile"
+            name="ipa"
+            type="file"
+            accept=".ipa,application/octet-stream"
+            required
+          />
+
+          <div class="file-icon">↑</div>
+          <div id="fileName" class="file-title">Choose signed .ipa</div>
+          <div class="file-sub">Tap here and select your Geode IPA</div>
         </label>
 
-        <details>
+        <details class="advanced">
           <summary>Advanced options</summary>
+
           <div class="fields">
-            <input name="bundleId" value="com.geode.launcher" placeholder="Bundle ID">
-            <input name="version" value="1.0" placeholder="Version">
-            <input name="title" value="Geode" placeholder="App title">
+            <label>
+              <span>Bundle ID</span>
+              <input
+                name="bundleId"
+                value="com.geode.launcher"
+                autocomplete="off"
+              />
+            </label>
+
+            <label>
+              <span>Version</span>
+              <input
+                name="version"
+                value="1.0"
+                autocomplete="off"
+              />
+            </label>
+
+            <label>
+              <span>App Name</span>
+              <input
+                name="title"
+                value="Geode"
+                autocomplete="off"
+              />
+            </label>
           </div>
         </details>
 
-        <button class="btn primary" type="submit">Create Install Button</button>
+        <button id="uploadButton" class="button primary full" type="submit">
+          Create Install Button
+        </button>
       </form>
 
-      <div id="installArea" class="install-area hidden">
-        <div class="success">Ready for iPhone</div>
-        <a id="installBtn" class="btn install" href="#">Install Geode</a>
-        <p class="tiny">Safari will hand the manifest to iOS. The IPA still has to be signed/provisioned for your device.</p>
+      <div id="installBox" class="install-box hidden">
+        <div class="ready-badge">READY</div>
+        <h3>Your install link is ready.</h3>
+
+        <a id="installButton" class="button install full" href="#">
+          Install Geode
+        </a>
+
+        <p class="tiny">
+          Open this page in Safari on the iPhone that is allowed by the signing
+          profile.
+        </p>
       </div>
-      <div id="uploadError" class="error hidden"></div>
+
+      <div id="uploadError" class="message error hidden"></div>
     </section>
 
-    <section class="card warn">
-      <div class="label">IMPORTANT</div>
-      <h2>What this site can’t fake</h2>
-      <p>Apple requires a valid signature and provisioning profile. This site does not generate stolen/public enterprise certificates and does not bypass iOS code-signing.</p>
+    <section class="panel warning">
+      <div class="small-label">IMPORTANT</div>
+      <h2>Signing is still required</h2>
+
+      <p class="muted">
+        A normal website cannot generate a valid Apple Developer certificate
+        out of nothing. This site handles the release download, hosting,
+        manifest creation, and install link — but the IPA still needs to be
+        legitimately signed for your device.
+      </p>
     </section>
 
-    <footer>
-      Uses the official <a href="https://github.com/geode-sdk/ios-launcher" target="_blank" rel="noopener">geode-sdk/ios-launcher</a> release feed.
+    <footer class="footer">
+      <span>Geode Installer</span>
+      <span>•</span>
+      <a
+        href="https://github.com/geode-sdk/ios-launcher"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Official Geode iOS Launcher
+      </a>
     </footer>
   </main>
-  <script src="/app.js"></script>
+
+  <script src="app.js"></script>
 </body>
 </html>

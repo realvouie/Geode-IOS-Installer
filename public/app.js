@@ -1,79 +1,121 @@
-const $ = s => document.querySelector(s);
+const $ = (selector) => document.querySelector(selector);
 
-async function loadLatest() {
+async function loadLatestRelease() {
   try {
-    const r = await fetch("/api/latest");
-    const data = await r.json();
-    if (!r.ok) throw new Error(data.error || "Failed");
+    const response = await fetch("/api/latest");
+    const data = await response.json();
 
-    $("#version").textContent = data.tag || "Unknown";
-    $("#dot").classList.add("ok");
-    $("#releaseInfo").textContent = data.ipa
-      ? `${data.ipa.name} • ${(data.ipa.size / 1024 / 1024).toFixed(1)} MB`
-      : "Release found, but no IPA asset was detected.";
+    if (!response.ok) {
+      throw new Error(data.error || "Unable to load release.");
+    }
+
+    $("#releaseVersion").textContent = data.tag || "Latest";
+    $("#releaseStatus").classList.add("online");
 
     if (data.ipa) {
-      $("#downloadBtn").href = data.ipa.url;
-      $("#downloadBtn").classList.remove("disabled");
+      const megabytes = (data.ipa.size / 1024 / 1024).toFixed(1);
+
+      $("#releaseDescription").textContent =
+        `${data.ipa.name} • ${megabytes} MB`;
+
+      $("#officialDownload").href = data.ipa.url;
+      $("#officialDownload").classList.remove("disabled");
+    } else {
+      $("#releaseDescription").textContent =
+        "Release found, but no IPA asset was detected.";
     }
-  } catch (e) {
-    $("#version").textContent = "Unavailable";
-    $("#releaseInfo").textContent = e.message;
+  } catch (error) {
+    $("#releaseVersion").textContent = "Unavailable";
+    $("#releaseDescription").textContent = error.message;
   }
 }
 
-$("#cacheBtn").addEventListener("click", async () => {
-  const btn = $("#cacheBtn");
-  btn.disabled = true;
-  btn.textContent = "Downloading…";
-  $("#cacheResult").classList.add("hidden");
+$("#ipaFile").addEventListener("change", (event) => {
+  const file = event.target.files?.[0];
+
+  $("#fileName").textContent =
+    file ? file.name : "Choose signed .ipa";
+});
+
+$("#mirrorButton").addEventListener("click", async () => {
+  const button = $("#mirrorButton");
+  const result = $("#mirrorResult");
+
+  button.disabled = true;
+  button.textContent = "Downloading...";
+  result.classList.add("hidden");
 
   try {
-    const r = await fetch("/api/cache-latest", { method: "POST" });
-    const data = await r.json();
-    if (!r.ok) throw new Error(data.error || "Failed");
+    const response = await fetch("/api/cache-latest", {
+      method: "POST"
+    });
 
-    $("#cacheResult").innerHTML =
-      `Saved <b>${data.file}</b><br><a href="${data.downloadUrl}">Open mirrored IPA</a><br><br>${data.note}`;
-    $("#cacheResult").classList.remove("hidden");
-  } catch (e) {
-    $("#cacheResult").textContent = e.message;
-    $("#cacheResult").classList.remove("hidden");
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Unable to mirror IPA.");
+    }
+
+    result.innerHTML = `
+      Saved <strong>${data.file}</strong><br>
+      <a href="${data.downloadUrl}" target="_blank" rel="noopener noreferrer">
+        Open mirrored IPA
+      </a>
+      <br><br>
+      ${data.note}
+    `;
+
+    result.classList.remove("hidden");
+  } catch (error) {
+    result.textContent = error.message;
+    result.classList.remove("hidden");
   } finally {
-    btn.disabled = false;
-    btn.textContent = "Mirror IPA on this server";
+    button.disabled = false;
+    button.textContent = "Save IPA to This Server";
   }
 });
 
-$("#ipa").addEventListener("change", e => {
-  const f = e.target.files?.[0];
-  $("#fileText").textContent = f ? f.name : "Choose signed .ipa";
-});
+$("#uploadForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
 
-$("#uploadForm").addEventListener("submit", async e => {
-  e.preventDefault();
-  $("#uploadError").classList.add("hidden");
-  $("#installArea").classList.add("hidden");
+  const button = $("#uploadButton");
+  const errorBox = $("#uploadError");
+  const installBox = $("#installBox");
 
-  const submit = e.submitter;
-  submit.disabled = true;
-  submit.textContent = "Uploading…";
+  button.disabled = true;
+  button.textContent = "Uploading...";
+
+  errorBox.classList.add("hidden");
+  installBox.classList.add("hidden");
 
   try {
-    const fd = new FormData(e.currentTarget);
-    const r = await fetch("/api/upload-signed", { method: "POST", body: fd });
-    const data = await r.json();
-    if (!r.ok) throw new Error(data.error || "Upload failed");
+    const formData = new FormData(event.currentTarget);
 
-    $("#installBtn").href = data.installUrl;
-    $("#installArea").classList.remove("hidden");
-  } catch (err) {
-    $("#uploadError").textContent = err.message;
-    $("#uploadError").classList.remove("hidden");
+    const response = await fetch("/api/upload-signed", {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Upload failed.");
+    }
+
+    $("#installButton").href = data.installUrl;
+    installBox.classList.remove("hidden");
+
+    installBox.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+  } catch (error) {
+    errorBox.textContent = error.message;
+    errorBox.classList.remove("hidden");
   } finally {
-    submit.disabled = false;
-    submit.textContent = "Create Install Button";
+    button.disabled = false;
+    button.textContent = "Create Install Button";
   }
 });
 
-loadLatest();
+loadLatestRelease();
