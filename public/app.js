@@ -1,121 +1,108 @@
-const $ = (selector) => document.querySelector(selector);
 
-async function loadLatestRelease() {
+const $ = s => document.querySelector(s);
+let token = null;
+let pollTimer = null;
+
+function step(n) {
+  document.querySelectorAll(".step").forEach((el, i) => {
+    el.classList.toggle("active", i + 1 === n);
+    el.classList.toggle("done", i + 1 < n);
+  });
+  $("#panel1").classList.toggle("hidden", n !== 1);
+  $("#panel2").classList.toggle("hidden", n !== 2);
+  $("#panel3").classList.toggle("hidden", n !== 3);
+}
+
+function fail(message) {
+  $("#errorBox").textContent = message;
+  $("#errorBox").classList.remove("hidden");
+}
+
+function progressFor(status) {
+  return {
+    waiting_for_profile: 15,
+    device_received: 28,
+    registering_device: 40,
+    creating_profile: 58,
+    downloading_geode: 70,
+    signing: 86,
+    ready: 100
+  }[status] || 10;
+}
+
+async function start() {
+  $("#errorBox").classList.add("hidden");
+  $("#startBtn").disabled = true;
+  $("#startBtn").textContent = "Starting…";
+
   try {
-    const response = await fetch("/api/latest");
-    const data = await response.json();
+    const r = await fetch("/api/start", { method: "POST" });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || "Could not start.");
 
-    if (!response.ok) {
-      throw new Error(data.error || "Unable to load release.");
-    }
+    token = data.token;
+    $("#flow").classList.remove("hidden");
+    $("#profileBtn").href = data.profileUrl;
+    $("#flow").scrollIntoView({ behavior: "smooth", block: "start" });
+    step(1);
 
-    $("#releaseVersion").textContent = data.tag || "Latest";
-    $("#releaseStatus").classList.add("online");
-
-    if (data.ipa) {
-      const megabytes = (data.ipa.size / 1024 / 1024).toFixed(1);
-
-      $("#releaseDescription").textContent =
-        `${data.ipa.name} • ${megabytes} MB`;
-
-      $("#officialDownload").href = data.ipa.url;
-      $("#officialDownload").classList.remove("disabled");
-    } else {
-      $("#releaseDescription").textContent =
-        "Release found, but no IPA asset was detected.";
-    }
-  } catch (error) {
-    $("#releaseVersion").textContent = "Unavailable";
-    $("#releaseDescription").textContent = error.message;
+    pollTimer = setInterval(poll, 1800);
+  } catch (e) {
+    fail(e.message);
+  } finally {
+    $("#startBtn").disabled = false;
+    $("#startBtn").textContent = "Install Geode";
   }
 }
 
-$("#ipaFile").addEventListener("change", (event) => {
-  const file = event.target.files?.[0];
-
-  $("#fileName").textContent =
-    file ? file.name : "Choose signed .ipa";
-});
-
-$("#mirrorButton").addEventListener("click", async () => {
-  const button = $("#mirrorButton");
-  const result = $("#mirrorResult");
-
-  button.disabled = true;
-  button.textContent = "Downloading...";
-  result.classList.add("hidden");
+async function poll() {
+  if (!token) return;
 
   try {
-    const response = await fetch("/api/cache-latest", {
-      method: "POST"
-    });
+    const r = await fetch(`/api/status/${encodeURIComponent(token)}`, { cache: "no-store" });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || "Status check failed.");
 
-    const data = await response.json();
+    $("#bar").style.width = progressFor(data.status) + "%";
 
-    if (!response.ok) {
-      throw new Error(data.error || "Unable to mirror IPA.");
+    if (data.status !== "waiting_for_profile") step(2);
+
+    const labels = {
+      waiting_for_profile: "Waiting for the device profile…",
+      device_received: "Got your iPhone ID.",
+      registering_device: "Registering your iPhone with Apple…",
+      creating_profile: "Creating the provisioning profile…",
+      downloading_geode: "Downloading the newest Geode…",
+      signing: "Signing Geode for your iPhone…"
+    };
+    if (labels[data.status]) $("#buildText").textContent = labels[data.status];
+
+    if (data.status === "ready") {
+      clearInterval(pollTimer);
+      $("#installBtn").href = data.installUrl;
+      step(3);
+
+      // Try to continue automatically when Safari allows it.
+      setTimeout(() => {
+        try { window.location.href = data.installUrl; } catch {}
+      }, 650);
     }
 
-    result.innerHTML = `
-      Saved <strong>${data.file}</strong><br>
-      <a href="${data.downloadUrl}" target="_blank" rel="noopener noreferrer">
-        Open mirrored IPA
-      </a>
-      <br><br>
-      ${data.note}
-    `;
-
-    result.classList.remove("hidden");
-  } catch (error) {
-    result.textContent = error.message;
-    result.classList.remove("hidden");
-  } finally {
-    button.disabled = false;
-    button.textContent = "Save IPA to This Server";
-  }
-});
-
-$("#uploadForm").addEventListener("submit", async (event) => {
-  event.preventDefault();
-
-  const button = $("#uploadButton");
-  const errorBox = $("#uploadError");
-  const installBox = $("#installBox");
-
-  button.disabled = true;
-  button.textContent = "Uploading...";
-
-  errorBox.classList.add("hidden");
-  installBox.classList.add("hidden");
-
-  try {
-    const formData = new FormData(event.currentTarget);
-
-    const response = await fetch("/api/upload-signed", {
-      method: "POST",
-      body: formData
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || "Upload failed.");
+    if (data.status === "error") {
+      clearInterval(pollTimer);
+      fail(data.error || "Setup failed.");
     }
-
-    $("#installButton").href = data.installUrl;
-    installBox.classList.remove("hidden");
-
-    installBox.scrollIntoView({
-      behavior: "smooth",
-      block: "center"
-    });
-  } catch (error) {
-    errorBox.textContent = error.message;
-    errorBox.classList.remove("hidden");
-  } finally {
-    button.disabled = false;
-    button.textContent = "Create Install Button";
+  } catch (e) {
+    fail(e.message);
   }
-});
+}
 
-loadLatestRelease();
+$("#startBtn").addEventListener("click", start);
+
+$("#profileBtn").addEventListener("click", () => {
+  setTimeout(() => {
+    step(2);
+    $("#buildTitle").textContent = "Finish the profile in Settings";
+    $("#buildText").textContent = "After you tap Install in Settings, come back to Safari. This page is already waiting.";
+  }, 400);
+});

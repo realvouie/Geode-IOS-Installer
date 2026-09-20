@@ -1,13 +1,15 @@
 {
-  "name": "geode-ios-installer",
+  "name": "geode-one-click-installer",
   "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "check": "node --check server.js"
   },
   "dependencies": {
     "express": "^5.1.0",
-    "multer": "^2.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "plist": "^3.1.0"
   }
 }

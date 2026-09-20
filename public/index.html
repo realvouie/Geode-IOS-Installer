@@ -1,194 +1,98 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#09090b" />
-  <title>Geode iOS Installer</title>
-
-  <link rel="stylesheet" href="styles.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07080b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Geode for iPhone</title>
+  <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <div class="background-glow glow-one"></div>
-  <div class="background-glow glow-two"></div>
+  <div class="orb orb-a"></div>
+  <div class="orb orb-b"></div>
 
-  <main class="page">
-    <nav class="nav">
+  <main class="shell">
+    <header class="topbar">
       <div class="brand">
-        <div class="logo">G</div>
+        <div class="mark">G</div>
         <div>
-          <div class="brand-name">Geode Installer</div>
-          <div class="brand-sub">iOS</div>
+          <strong>Geode Installer</strong>
+          <small>iPhone</small>
         </div>
       </div>
-
-      <a
-        class="nav-link"
-        href="https://github.com/geode-sdk/ios-launcher"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Official GitHub
-      </a>
-    </nav>
+      <div class="pill">NO APP STORE</div>
+    </header>
 
     <section class="hero">
-      <div class="eyebrow">IPHONE • SAFARI • SELF-HOSTED</div>
-
-      <h1>
-        Install Geode<br />
-        <span>from your iPhone.</span>
-      </h1>
-
-      <p class="hero-text">
-        Grab the latest official Geode iOS build, upload a version signed for
-        your device, and generate a one-tap iPhone install link.
+      <div class="kicker">GEODE • IOS</div>
+      <h1>One button.<br><span>Geode installed.</span></h1>
+      <p>
+        The site gets your iPhone ID, registers it with the owner's Apple
+        Developer account, signs the newest Geode build, and gives iOS the
+        install package.
       </p>
 
-      <div class="hero-actions">
-        <a href="#latest" class="button primary">Get Geode</a>
-        <a href="#install" class="button secondary">Install Signed IPA</a>
-      </div>
+      <button id="startBtn" class="cta">Install Geode</button>
+      <div id="browserHint" class="hint">Open this page in Safari on the iPhone you want to install on.</div>
     </section>
 
-    <section id="latest" class="panel">
-      <div class="panel-head">
-        <div>
-          <div class="small-label">LATEST OFFICIAL RELEASE</div>
-          <h2 id="releaseVersion">Checking...</h2>
+    <section id="flow" class="card hidden">
+      <div class="steps">
+        <div class="step active" data-step="1">
+          <span>1</span>
+          <div><b>Get device ID</b><small>Install Apple's device-info profile.</small></div>
         </div>
-
-        <div id="releaseStatus" class="status-dot"></div>
+        <div class="step" data-step="2">
+          <span>2</span>
+          <div><b>Register + sign</b><small>The server handles Apple provisioning and Geode signing.</small></div>
+        </div>
+        <div class="step" data-step="3">
+          <span>3</span>
+          <div><b>Install</b><small>Approve the normal iOS install prompt.</small></div>
+        </div>
       </div>
 
-      <p id="releaseDescription" class="muted">
-        Checking the official Geode iOS GitHub release feed.
-      </p>
-
-      <div class="button-stack">
-        <a
-          id="officialDownload"
-          class="button light disabled"
-          href="#"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Download Official IPA
-        </a>
-
-        <button id="mirrorButton" class="button dark" type="button">
-          Save IPA to This Server
-        </button>
-      </div>
-
-      <div id="mirrorResult" class="message success hidden"></div>
-    </section>
-
-    <section id="install" class="panel">
-      <div class="small-label">ONE-TAP INSTALL</div>
-      <h2>Upload your signed Geode IPA</h2>
-
-      <p class="muted">
-        iOS only installs apps that are signed with a valid Apple certificate
-        and provisioning profile. Upload the signed IPA here and this site will
-        build the install manifest for you.
-      </p>
-
-      <form id="uploadForm">
-        <label class="file-picker">
-          <input
-            id="ipaFile"
-            name="ipa"
-            type="file"
-            accept=".ipa,application/octet-stream"
-            required
-          />
-
-          <div class="file-icon">↑</div>
-          <div id="fileName" class="file-title">Choose signed .ipa</div>
-          <div class="file-sub">Tap here and select your Geode IPA</div>
-        </label>
-
-        <details class="advanced">
-          <summary>Advanced options</summary>
-
-          <div class="fields">
-            <label>
-              <span>Bundle ID</span>
-              <input
-                name="bundleId"
-                value="com.geode.launcher"
-                autocomplete="off"
-              />
-            </label>
-
-            <label>
-              <span>Version</span>
-              <input
-                name="version"
-                value="1.0"
-                autocomplete="off"
-              />
-            </label>
-
-            <label>
-              <span>App Name</span>
-              <input
-                name="title"
-                value="Geode"
-                autocomplete="off"
-              />
-            </label>
-          </div>
-        </details>
-
-        <button id="uploadButton" class="button primary full" type="submit">
-          Create Install Button
-        </button>
-      </form>
-
-      <div id="installBox" class="install-box hidden">
-        <div class="ready-badge">READY</div>
-        <h3>Your install link is ready.</h3>
-
-        <a id="installButton" class="button install full" href="#">
-          Install Geode
-        </a>
-
-        <p class="tiny">
-          Open this page in Safari on the iPhone that is allowed by the signing
-          profile.
+      <div id="panel1" class="panel">
+        <h2>Install the temporary device profile</h2>
+        <p>
+          iOS will open Settings. Tap <b>Install</b> for the profile, then return
+          to Safari. The page will continue automatically.
         </p>
+        <a id="profileBtn" class="button" href="#">Open Device Profile</a>
+        <p class="fine">The profile requests only UDID, iOS version, and device model.</p>
       </div>
 
-      <div id="uploadError" class="message error hidden"></div>
+      <div id="panel2" class="panel hidden">
+        <div class="spinner"></div>
+        <h2 id="buildTitle">Setting up your iPhone…</h2>
+        <p id="buildText">Waiting for your device profile.</p>
+        <div class="progress"><i id="bar"></i></div>
+      </div>
+
+      <div id="panel3" class="panel hidden">
+        <div class="check">✓</div>
+        <h2>Geode is ready</h2>
+        <p>The IPA is signed for this iPhone.</p>
+        <a id="installBtn" class="button install" href="#">Install Geode</a>
+        <p class="fine">iOS may ask you to confirm installation.</p>
+      </div>
+
+      <div id="errorBox" class="error hidden"></div>
     </section>
 
-    <section class="panel warning">
-      <div class="small-label">IMPORTANT</div>
-      <h2>Signing is still required</h2>
-
-      <p class="muted">
-        A normal website cannot generate a valid Apple Developer certificate
-        out of nothing. This site handles the release download, hosting,
-        manifest creation, and install link — but the IPA still needs to be
-        legitimately signed for your device.
+    <section class="card info">
+      <h3>Owner setup</h3>
+      <p>
+        This website uses your Apple Developer account. Your API key and signing
+        certificate stay on the server and are never sent to visitors.
       </p>
     </section>
 
-    <footer class="footer">
-      <span>Geode Installer</span>
-      <span>•</span>
-      <a
-        href="https://github.com/geode-sdk/ios-launcher"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Official Geode iOS Launcher
-      </a>
+    <footer>
+      Uses the official Geode iOS release feed.
     </footer>
   </main>
-
-  <script src="app.js"></script>
+  <script src="/app.js"></script>
 </body>
 </html>
